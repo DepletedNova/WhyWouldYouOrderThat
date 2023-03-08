@@ -20,6 +20,7 @@ using System;
 using WWYOT.Items.EverythingStew;
 using System.Diagnostics;
 using HarmonyLib;
+using WWYOT.Dishes;
 
 namespace WWYOT
 {

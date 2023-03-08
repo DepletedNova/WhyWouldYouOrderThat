@@ -1,4 +1,6 @@
-﻿namespace WWYOT.Items
+﻿using WWYOT.Items;
+
+namespace WWYOT.Dishes
 {
     internal class BurntSteakDish : SteakDish
     {
