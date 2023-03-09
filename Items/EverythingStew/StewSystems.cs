@@ -30,75 +30,13 @@ namespace WWYOT.Items.EverythingStew
 
                 foreach (var ingredient in dish.MinimumIngredients)
                 {
-                    if (ValidStewItem.Contains(ingredient.ID))
+                    if (Main.ValidStewItem.Contains(ingredient.ID))
                     {
                         AvailableIngredientCount++;
                     }
                 }
             }
         }
-
-        internal static List<int> ValidStewItem = new();
-        internal static void SetupStew(GameData gameData)
-        {
-            ItemGroup stew = GetCastedGDO<ItemGroup, UncookedEverythingStew>();
-            var stewView = stew.Prefab.GetComponent<UncookedEverythingStew.StewItemGroupView>();
-
-            List<Item> items = new();
-            List<Item> checkedItems = new()
-            {
-                GetExistingGDO(ItemReferences.Meat) as Item,
-                GetExistingGDO(ItemReferences.Potato) as Item
-            };
-
-            foreach (ICard card in gameData.GetCards())
-            {
-                if (!(card is Dish))
-                    continue;
-
-                SetupStewDish(ref stewView, ref checkedItems, ref items, card as Dish);
-            }
-
-            foreach (var gdo in CustomGDO.GDOs)
-            {
-                if (!(gdo.Value.GameDataObject is Dish))
-                    continue;
-
-                SetupStewDish(ref stewView, ref checkedItems, ref items, gdo.Value.GameDataObject as Dish);
-            }
-
-            ItemGroup.ItemSet set = new()
-            {
-                Items = items,
-                Max = items.Count,
-                Min = items.Count,
-            };
-            stew.DerivedSets.Add(set);
-        }
-
-        private static void SetupStewDish(ref UncookedEverythingStew.StewItemGroupView view, ref List<Item> checkedItems, ref List<Item> items, Dish dish)
-        {
-            foreach (var item in dish.MinimumIngredients)
-            {
-                if (item.IsIndisposable || checkedItems.Contains(item)) continue;
-
-                checkedItems.Add(item);
-
-                foreach (var process in item.DerivedProcesses)
-                {
-                    if (process.Process.ID != ProcessReferences.Chop)
-                        continue;
-
-                    items.Add(process.Result);
-                    ValidStewItem.Add(item.ID);
-
-                    view.AddItem(process.Result);
-
-                    break;
-                }
-            }
-        }
-
     }
 
     public class PortionCountFromStewIngredientsSystem : DaySystem, IModSystem
@@ -121,7 +59,7 @@ namespace WWYOT.Items.EverythingStew
 
                 if (splittable.TotalCount == ingredients.ingredients)
                     continue;
-                int amount = ingredients.ingredients * 2 + 2;
+                int amount = ingredients.ingredients * 3 + 6;
                 splittable.TotalCount = amount;
                 splittable.RemainingCount = amount;
 

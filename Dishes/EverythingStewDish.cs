@@ -1,4 +1,6 @@
-﻿namespace WWYOT.Dishes
+﻿using WWYOT.Items;
+
+namespace WWYOT.Dishes
 {
     public class EverythingStewDish : CustomDish
     {

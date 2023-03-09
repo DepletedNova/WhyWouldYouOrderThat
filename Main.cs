@@ -21,13 +21,14 @@ using WWYOT.Items.EverythingStew;
 using System.Diagnostics;
 using HarmonyLib;
 using WWYOT.Dishes;
+using Debug = UnityEngine.Debug;
 
 namespace WWYOT
 {
     public class Main : BaseMod
     {
         public const string GUID = "nova.wwyot";
-        public const string VERSION = "1.0.0";
+        public const string VERSION = "1.0.2";
 
         public Main() : base(GUID, "Why Would You Order That?", "Depleted Supernova#1957", VERSION, ">=1.1.0", Assembly.GetExecutingAssembly()) { }
 
@@ -95,7 +96,7 @@ namespace WWYOT
                     return;
 
                 Steaks.SetupSteakPrefabs(args.gamedata);
-                StewIngredientCollectionSystem.SetupStew(args.gamedata);
+                SetupStew(args.gamedata);
             };
         }
 
@@ -120,6 +121,64 @@ namespace WWYOT
             }
         }
 
+        #region Steak
+        internal static List<int> ValidStewItem = new();
+        internal void SetupStew(GameData gameData)
+        {
+            ItemGroup stew = GetCastedGDO<ItemGroup, UncookedEverythingStew>();
+            var stewView = stew.Prefab.GetComponent<UncookedEverythingStew.StewItemGroupView>();
+
+            List<Item> items = new();
+            List<Item> checkedItems = new()
+            {
+                GetExistingGDO(ItemReferences.Meat) as Item,
+                GetExistingGDO(ItemReferences.Potato) as Item
+            };
+
+            foreach (var gdo in gameData.Objects.Values)
+            {
+                if (!(gdo is Dish))
+                    continue;
+
+                SetupStewDish(ref stewView, ref checkedItems, ref items, gdo as Dish);
+            }
+
+            foreach (var gdo in CustomGDO.GDOs)
+            {
+                if (!(gdo.Value.GameDataObject is Dish))
+                    continue;
+
+                SetupStewDish(ref stewView, ref checkedItems, ref items, gdo.Value.GameDataObject as Dish);
+            }
+
+            stew.DerivedSets[2].Items.AddRange(items);
+        }
+
+        private void SetupStewDish(ref UncookedEverythingStew.StewItemGroupView view, ref List<Item> checkedItems, ref List<Item> items, Dish dish)
+        {
+            foreach (var item in dish.MinimumIngredients)
+            {
+                if (item.IsIndisposable || checkedItems.Contains(item)) continue;
+
+                checkedItems.Add(item);
+
+                foreach (var process in item.DerivedProcesses)
+                {
+                    if (process.Process.ID != ProcessReferences.Chop)
+                        continue;
+
+                    items.Add(process.Result);
+                    ValidStewItem.Add(item.ID);
+
+                    view.AddItem(process.Result);
+
+                    break;
+                }
+            }
+        }
+        #endregion
+
+        #region Steam
         private static VisualEffectAsset _steamEffect;
         internal static VisualEffectAsset SteamEffect
         {
@@ -140,9 +199,10 @@ namespace WWYOT
                 return _steamEffect;
             }
         }
-
+        #endregion
     }
 
+    #region ItemGroupView
     internal class ComponentAccesserUtil : ItemGroupView
     {
         private static FieldInfo componentGroupField = ReflectionUtils.GetField<ItemGroupView>("ComponentGroups");
@@ -161,4 +221,5 @@ namespace WWYOT
             componentGroupField.SetValue(viewToAddTo, componentGroups);
         }
     }
+    #endregion
 }

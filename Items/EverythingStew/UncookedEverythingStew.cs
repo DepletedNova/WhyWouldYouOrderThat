@@ -45,6 +45,12 @@ namespace WWYOT.Items
                 },
                 Max = 2,
                 Min = 2
+            },
+            new()
+            {
+                Items = new(),
+                Max = 999,
+                Min = 999
             }
         };
 
@@ -62,6 +68,8 @@ namespace WWYOT.Items
 
             Prefab.GetComponent<StewItemGroupView>().SetupDefault();
             ItemID = gdo.ID;
+
+
         }
 
         public class StewItemGroupView : ItemGroupView

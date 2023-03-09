@@ -94,17 +94,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Dishes\BurntSteaks.cs" />
+    <Compile Include="Dishes\SteakDishes.cs" />
     <Compile Include="GameObjectExt.cs" />
     <Compile Include="Items\EverythingStew\CookedEverythingStew.cs" />
-    <Compile Include="Items\EverythingStew\EverythingStewDish.cs" />
+    <Compile Include="Dishes\EverythingStewDish.cs" />
     <Compile Include="Items\EverythingStew\EverythingStewServing.cs" />
     <Compile Include="Items\EverythingStew\StewSystems.cs" />
     <Compile Include="Items\EverythingStew\UncookedEverythingStew.cs" />
-    <Compile Include="Items\Steak\Steaks.cs" />
+    <Compile Include="Items\Steaks.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Items\Steak\SteakDishes.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
