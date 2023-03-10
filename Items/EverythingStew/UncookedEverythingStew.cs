@@ -18,7 +18,7 @@ namespace WWYOT.Items
         {
             new()
             {
-                Duration = 10,
+                Duration = 12.5f,
                 Process = GetExistingGDO(ProcessReferences.Cook) as Process,
                 Result = GetCastedGDO<Item, CookedEverythingStew>()
             }
@@ -50,7 +50,7 @@ namespace WWYOT.Items
             {
                 Items = new(),
                 Max = 999,
-                Min = 999
+                Min = 0
             }
         };
 

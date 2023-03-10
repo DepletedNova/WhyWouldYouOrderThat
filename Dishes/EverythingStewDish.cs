@@ -16,7 +16,7 @@ namespace WWYOT.Dishes
         public override Dictionary<Locale, string> Recipe => new()
         {
             { Locale.English, "Take a pot and fill it with water. Chop both a potato and meat then add them both. " +
-                "If another miscellaneous ingredient in the kitchen can be chopped once then do so and add it." }
+                "If an ingredient in the kitchen can be chopped or kneaded then do so and add it. Cooked, portion, and then serve." }
         };
         public override HashSet<Item> MinimumIngredients => new()
         {

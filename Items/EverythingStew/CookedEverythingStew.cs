@@ -14,6 +14,7 @@ namespace WWYOT.Items
         public override float SplitSpeed => 1;
         public override int SplitCount => 99;
         public override List<Item> SplitDepletedItems => new() { GetExistingGDO(ItemReferences.Pot) as Item };
+        public override string ColourBlindTag => "KSS";
 
         public override void OnRegister(GameDataObject gdo)
         {

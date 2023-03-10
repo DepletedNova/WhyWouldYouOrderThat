@@ -2,13 +2,14 @@
 
 namespace WWYOT.Items
 {
-    internal class EverythingStewServing : CustomItemGroup
+    internal class EverythingStewServing : CustomItem
     {
         public override string UniqueNameID => "Everything Stew Serving";
         public override ItemCategory ItemCategory => ItemCategory.Generic;
         public override ItemStorage ItemStorageFlags => ItemStorage.StackableFood;
         public override GameObject Prefab => Main.Bundle.LoadAsset<GameObject>("Everything Serving");
         public override ItemValue ItemValue => ItemValue.MediumLarge;
+        public override string ColourBlindTag => "KSS";
 
         public override void OnRegister(GameDataObject gdo)
         {

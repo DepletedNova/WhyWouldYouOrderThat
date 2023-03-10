@@ -59,7 +59,7 @@ namespace WWYOT.Items.EverythingStew
 
                 if (splittable.TotalCount == ingredients.ingredients)
                     continue;
-                int amount = ingredients.ingredients * 3 + 6;
+                int amount = ingredients.ingredients * 2 + 2;
                 splittable.TotalCount = amount;
                 splittable.RemainingCount = amount;
 
@@ -74,16 +74,6 @@ namespace WWYOT.Items.EverythingStew
     [HarmonyPatch(typeof(ItemExtensions))]
     internal class StewItemGroup_Patch
     {
-        [HarmonyPatch(nameof(ItemExtensions.CreateItemGroup))]
-        [HarmonyPrefix]
-        static void CreateItemGroup_Prefix(EntityContext ctx, int item_id, ItemList components, ref bool is_partial)
-        {
-            if (item_id == UncookedEverythingStew.ItemID && components.Count - 4 >= StewIngredientCollectionSystem.AvailableIngredientCount)
-            {
-                is_partial = false;
-            }
-        }
-
         [HarmonyPatch(nameof(ItemExtensions.CreateItemGroup))]
         [HarmonyPostfix]
         static void CreateItemGroup_Postfix(ref Entity __result, EntityContext ctx, int item_id, ItemList components, bool is_partial)

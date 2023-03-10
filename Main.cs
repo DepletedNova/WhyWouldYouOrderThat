@@ -1,34 +1,28 @@
-﻿global using KitchenLib.References;
-global using KitchenLib.Customs;
-global using KitchenLib.Utils;
+﻿global using KitchenData;
 global using KitchenLib;
-global using KitchenData;
+global using KitchenLib.Customs;
+global using KitchenLib.References;
+global using KitchenLib.Utils;
 global using System.Collections.Generic;
 global using UnityEngine;
-
 global using static KitchenLib.Utils.GDOUtils;
-
+using HarmonyLib;
+using Kitchen;
+using KitchenLib.Event;
 using KitchenMods;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using WWYOT.Items;
-using KitchenLib.Event;
 using UnityEngine.VFX;
-using KitchenLib.Colorblind;
-using Kitchen;
-using System;
-using WWYOT.Items.EverythingStew;
-using System.Diagnostics;
-using HarmonyLib;
 using WWYOT.Dishes;
-using Debug = UnityEngine.Debug;
+using WWYOT.Items;
 
 namespace WWYOT
 {
     public class Main : BaseMod
     {
         public const string GUID = "nova.wwyot";
-        public const string VERSION = "1.0.2";
+        public const string VERSION = "1.0.4";
 
         public Main() : base(GUID, "Why Would You Order That?", "Depleted Supernova#1957", VERSION, ">=1.1.0", Assembly.GetExecutingAssembly()) { }
 
@@ -103,9 +97,14 @@ namespace WWYOT
         [HarmonyPatch(typeof(GameDataConstructor), nameof(GameDataConstructor.BuildGameData))]
         class Modify_GameDataConstructor_Patch
         {
+            private static bool firstRun = true;
             [HarmonyPrefix]
             internal static void Prefix(GameDataConstructor __instance)
             {
+                if (!firstRun)
+                    return;
+                firstRun = true;
+
                 // Add to query
                 var queue = GetQueue();
                 Dictionary<int, GameDataObject> gdos = new();
@@ -121,7 +120,9 @@ namespace WWYOT
             }
         }
 
-        #region Steak
+        #region Stew
+        private static FieldInfo ProviderItemField = ReflectionUtils.GetField<CItemProvider>("Item");
+
         internal static List<int> ValidStewItem = new();
         internal void SetupStew(GameData gameData)
         {
@@ -132,48 +133,61 @@ namespace WWYOT
             List<Item> checkedItems = new()
             {
                 GetExistingGDO(ItemReferences.Meat) as Item,
-                GetExistingGDO(ItemReferences.Potato) as Item
+                GetExistingGDO(ItemReferences.MeatChopped) as Item,
+                GetExistingGDO(ItemReferences.Potato) as Item,
+                GetExistingGDO(ItemReferences.PotatoChopped) as Item,
             };
 
-            foreach (var gdo in gameData.Objects.Values)
+            // Setup array
+            List<Appliance> appliances = new();
+            foreach (var gdo in gameData.Objects)
+                if (gdo.Value is Appliance appliance)
+                    appliances.Add(appliance);
+            foreach (var cgdo in CustomGDO.GDOs)
+                if (cgdo.Value.GameDataObject is Appliance appliance)
+                    appliances.Add(appliance);
+
+            foreach (var appliance in appliances)
             {
-                if (!(gdo is Dish))
+                var providerCheck = appliance.Properties.OfType<CItemProvider>();
+                if (providerCheck.IsNullOrEmpty())
                     continue;
 
-                SetupStewDish(ref stewView, ref checkedItems, ref items, gdo as Dish);
-            }
-
-            foreach (var gdo in CustomGDO.GDOs)
-            {
-                if (!(gdo.Value.GameDataObject is Dish))
+                var provider = providerCheck.FirstOrDefault();
+                if (!gameData.TryGet<Item>((int)ProviderItemField.GetValue(provider), out var item, false))
                     continue;
 
-                SetupStewDish(ref stewView, ref checkedItems, ref items, gdo.Value.GameDataObject as Dish);
+                checkedItems.Add(item);
+
+                RecursivelyCheckItem(item, ref checkedItems, ref items, ref stewView);
             }
 
             stew.DerivedSets[2].Items.AddRange(items);
         }
-
-        private void SetupStewDish(ref UncookedEverythingStew.StewItemGroupView view, ref List<Item> checkedItems, ref List<Item> items, Dish dish)
+        private void RecursivelyCheckItem(Item item, ref List<Item> checkedItems, ref List<Item> items, ref UncookedEverythingStew.StewItemGroupView view)
         {
-            foreach (var item in dish.MinimumIngredients)
+            var itemsToProcess = new List<Item>();
+            foreach (var process in item.DerivedProcesses)
             {
-                if (item.IsIndisposable || checkedItems.Contains(item)) continue;
+                if (process.Process.ID != ProcessReferences.Chop && process.Process.ID != ProcessReferences.Knead)
+                    continue;
 
-                checkedItems.Add(item);
+                if (process.Result.IsIndisposable || checkedItems.Contains(process.Result))
+                    continue;
 
-                foreach (var process in item.DerivedProcesses)
-                {
-                    if (process.Process.ID != ProcessReferences.Chop)
-                        continue;
-
-                    items.Add(process.Result);
-                    ValidStewItem.Add(item.ID);
-
-                    view.AddItem(process.Result);
-
-                    break;
-                }
+                checkedItems.Add(process.Result);
+                itemsToProcess.Add(process.Result);
+                items.Add(process.Result);
+                view.AddItem(process.Result);
+                RecursivelyCheckItem(process.Result, ref checkedItems, ref items, ref view);
+            }
+            if (item.SplitSubItem is Item subItem && !subItem.IsIndisposable && !checkedItems.Contains(subItem))
+            {
+                checkedItems.Add(subItem);
+                itemsToProcess.Add(subItem);
+                items.Add(subItem);
+                view.AddItem(subItem);
+                RecursivelyCheckItem(subItem, ref checkedItems, ref items, ref view);
             }
         }
         #endregion
