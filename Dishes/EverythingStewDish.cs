@@ -34,7 +34,7 @@ namespace WWYOT.Dishes
         {
             new()
             {
-                Item = GetCastedGDO<ItemGroup, EverythingStewServing>(),
+                Item = GetCastedGDO<Item, EverythingStewServing>(),
                 Phase = MenuPhase.Starter,
                 Weight = 1f
             }

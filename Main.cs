@@ -22,7 +22,7 @@ namespace WWYOT
     public class Main : BaseMod
     {
         public const string GUID = "nova.wwyot";
-        public const string VERSION = "1.0.4";
+        public const string VERSION = "1.0.5";
 
         public Main() : base(GUID, "Why Would You Order That?", "Depleted Supernova#1957", VERSION, ">=1.1.0", Assembly.GetExecutingAssembly()) { }
 
@@ -178,7 +178,10 @@ namespace WWYOT
                 checkedItems.Add(process.Result);
                 itemsToProcess.Add(process.Result);
                 items.Add(process.Result);
-                view.AddItem(process.Result);
+
+                if (process.Result.Prefab != null)
+                    view.AddItem(process.Result);
+
                 RecursivelyCheckItem(process.Result, ref checkedItems, ref items, ref view);
             }
             if (item.SplitSubItem is Item subItem && !subItem.IsIndisposable && !checkedItems.Contains(subItem))
@@ -186,7 +189,10 @@ namespace WWYOT
                 checkedItems.Add(subItem);
                 itemsToProcess.Add(subItem);
                 items.Add(subItem);
-                view.AddItem(subItem);
+
+                if (subItem.Prefab != null)
+                    view.AddItem(subItem);
+
                 RecursivelyCheckItem(subItem, ref checkedItems, ref items, ref view);
             }
         }
